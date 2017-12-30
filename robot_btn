@@ -12,7 +12,7 @@
 
 case "$1" in
 	start)
-		nohup stdbuf -oL python /home/pi/robot_btn.py >/home/pi/logs/robot_btn.log 2>&1 &
+		nohup stdbuf -oL python /share/robot/robot_btn.py >/share/robot/logs/robot_btn.log 2>&1 &
 		;;
 	stop)
 		sudo killall python

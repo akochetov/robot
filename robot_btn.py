@@ -32,7 +32,7 @@ def when_pressed():
 	else:
 		print('Button pressed')
 		if p is None:
-			p=Popen('exec python /home/pi/led.py',shell=True)
+			p=Popen('exec python /share/robot/led.py',shell=True)
 	press_time = time()
 
 #----------------------------------------
