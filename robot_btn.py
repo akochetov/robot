@@ -16,7 +16,7 @@ press_time = 0
 #button press handlers
 
 def when_held():
-	print('Button held. Shutting down...')
+	print('Button held. Shutting down...\r\n')
 	check_call('sudo poweroff ',shell=True)
 
 def when_pressed():
@@ -25,12 +25,12 @@ def when_pressed():
 	global p
 
 	if (time()-press_time)<=dbl_press_time:
-		print('Dbl click detected')
+		print('Dbl click detected\r\n')
 		if p is not None:
 			p.kill()
 			p=None
 	else:
-		print('Button pressed')
+		print('Button pressed\r\n')
 		if p is None:
 			p=Popen('exec python /share/robot/led.py',shell=True)
 	press_time = time()
@@ -41,7 +41,7 @@ shut_btn=Button(26,hold_time=3)
 
 #----------------------------------------
 
-print('GPIO is ready.')
+print('GPIO is ready.\r\n')
 shut_btn.when_held=when_held
 shut_btn.when_pressed=when_pressed
 pause()
