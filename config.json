@@ -1,0 +1,11 @@
+{
+
+	"ctrl_btn":14,
+
+	"left_motor":{"EN":13,"IN1":5,"IN2":6},
+
+	"right_motor":{"EN":19,"IN1":20,"IN2":21},
+
+	"ctrl_led":15
+
+}

@@ -1,8 +1,8 @@
 from gpiozero import LED,Button
 from signal import pause
 
-led=LED(21)
-button=Button(26)
+led=LED(15)
+button=Button(14)
 
 def button_pressed():
 	print('button pressed')

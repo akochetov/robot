@@ -1,8 +1,9 @@
-from gpiozero import Button
+from config import Cfg	#config json
+from gpiozero import Button, LED
 from subprocess import check_call
 from subprocess import Popen
 from signal import pause
-from time import time
+from time import time, sleep
 
 #---------------------------------------
 #constants
@@ -32,16 +33,22 @@ def when_pressed():
 	else:
 		print('Button pressed\r\n')
 		if p is None:
-			p=Popen('exec python /share/robot/led.py',shell=True)
+			p=Popen('exec python /share/robot/motor.py',shell=True)
 	press_time = time()
 
 #----------------------------------------
 #create GPIO button. This will init GPIO (takes a few secs)
-shut_btn=Button(26,hold_time=3)
+shut_btn=Button(Cfg().get('ctrl_btn'),hold_time=3)
 
 #----------------------------------------
 
 print('GPIO is ready.\r\n')
+
+led = LED(Cfg().get('ctrl_led'))
+led.on()
+sleep(3)
+led.off()
+
 shut_btn.when_held=when_held
 shut_btn.when_pressed=when_pressed
 pause()
