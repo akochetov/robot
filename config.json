@@ -1,11 +1,10 @@
 {
-
 	"ctrl_btn":14,
-
 	"left_motor":{"EN":13,"IN1":5,"IN2":6},
-
 	"right_motor":{"EN":19,"IN1":20,"IN2":21},
-
+	"I2Caddress":"0x68",
+	"gyro":{"axis":"x","calibration":5.0,"target":0.0},
+	"accel":{"axis":"x","calibration":0.0,"target":0.0},
+	"pid":[0.0,0.0,0.0],
 	"ctrl_led":15
-
 }

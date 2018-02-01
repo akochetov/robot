@@ -1,132 +1,58 @@
-from config import Cfg	#config json
 import RPi.GPIO as GPIO
 from time import sleep
 from datetime import  datetime
 
-left_pwm = None
-right_pwm = None
+class PWMMotor:
+	_pwm = None
 
-pwm_power = 50
-pwm_freq = 500
+	_pwm_freq = 500
 
-GPIO.setmode(GPIO.BCM)
+	_enable_pin = 0
+	_in1_pin = 0
+	_in2_pin = 0
 
-def pin(p):
-	GPIO.setup(p,GPIO.OUT)
-   	return p
+	def __init__(self,enable_pin,in1_pin,in2_pin,pwm_frequency=100):
+		GPIO.setmode(GPIO.BCM)
 
-def rotate(clockwise,en,in1,in2,pwm = None):
-	print(str(datetime.now())+' Rotate motor: EN:'+str(en)+',IN1:'+str(in1)+',IN2:'+str(in2))
+		self._enable_pin = enable_pin
+		self._in1_pin = in1_pin
+		self._in2_pin = in2_pin
+		self._pwm_freq = pwm_frequency
 
-        if clockwise:
-                GPIO.output(in1,GPIO.HIGH)
-                GPIO.output(in2,GPIO.LOW)
-        else:
-                GPIO.output(in1,GPIO.LOW)
-                GPIO.output(in2,GPIO.HIGH)
+		self.setup()
 
-	#GPIO.output(en, GPIO.HIGH)
-	if pwm is None:
-		pwm = GPIO.PWM(en,pwm_freq)
-		pwm.start(0)
-	pwm.ChangeDutyCycle(pwm_power)
-	return pwm
+	def setup(self):
+		GPIO.setup(self._enable_pin,GPIO.OUT)	
+		GPIO.setup(self._in1_pin,GPIO.OUT)
+		GPIO.setup(self._in2_pin,GPIO.OUT)
 
-def stop(en,in1,in2,pwm):
-	print(str(datetime.now())+' Stop motor: EN:'+str(en)+',IN1:'+str(in1)+',IN2:'+str(in2))
+		self._pwm = GPIO.PWM(self._enable_pin,self._pwm_freq)
+                self._pwm.start(0)
 
-	#GPIO.output(in1, GPIO.LOW)
-	#GPIO.output(in2, GPIO.LOW)
-	#GPIO.output(en, GPIO.LOW)
-	pwm.ChangeDutyCycle(0)
+	def rotate(self,clockwise,power=100):
+		assert self._pwm is not None, "PWM was not yet setup. Call setup() first"
+		print(str(datetime.now())+' Rotate motor: EN:'+str(self._enable_pin)+',IN1:'+str(self._in1_pin)+',IN2:'+str(self._in2_pin))
 
-def left_rotate(clockwise = True,pwm = None):
-	pins = Cfg().get('left_motor')
-	en = pin(pins['EN'])
-	in1 = pin(pins['IN1'])
-	in2 = pin(pins['IN2'])
+	        if clockwise:
+        	        GPIO.output(self._in1_pin,GPIO.HIGH)
+                	GPIO.output(self._in2_pin,GPIO.LOW)
+	        else:
+        	        GPIO.output(self._in1_pin,GPIO.LOW)
+                	GPIO.output(self._in2_pin,GPIO.HIGH)
 
-	return rotate(clockwise,en,in1,in2,pwm)
+		self._pwm.ChangeDutyCycle(power)
 
-def right_rotate(clockwise = True,pwm = None):
-        pins = Cfg().get('right_motor')
-        en = pin(pins['EN'])
-        in1 = pin(pins['IN1'])
-        in2 = pin(pins['IN2'])
+	def stop(self):
+		if self._pwm is not None:
+			print(str(datetime.now())+' Stop motor: EN:'+str(self._enable_pin)+',IN1:'+str(self._in1_pin)+',IN2:'+str(self._in2_pin))
+			GPIO.output(self._in1_pin, GPIO.LOW)
+			GPIO.output(self._in2_pin, GPIO.LOW)
+			self._pwm.ChangeDutyCycle(0)
 
-        return rotate(clockwise,en,in1,in2,pwm)
+	def cleanup(self):
+		self.stop()
+                if self._pwn is not None:
+                        self._pwm.stop()
+                        self._pwm = None
 
-def left_stop(pwm):
-        pins = Cfg().get('left_motor')
-        en = pin(pins['EN'])
-        in1 = pin(pins['IN1'])
-        in2 = pin(pins['IN2'])
 
-	stop(en,in1,in2,pwm)
-
-def right_stop(pwm):
-        pins = Cfg().get('right_motor')
-	en = pin(pins['EN'])
-        in1 = pin(pins['IN1'])
-        in2 = pin(pins['IN2'])
-
-	stop(en,in1,in2,pwm)
-
-led = Cfg().get('ctrl_led')
-GPIO.setup(led,GPIO.OUT)
-
-while True:
-	#turn led on
-	GPIO.output(led,GPIO.HIGH)
-
-	#test left motor 
-	left_pwm = left_rotate(True,left_pwm)
-	sleep(1)
-	left_stop(left_pwm)
-
-        GPIO.output(led,GPIO.LOW)
-
-	left_rotate(False,left_pwm)
-	sleep(1)
-	left_stop(left_pwm)
-
-        GPIO.output(led,GPIO.HIGH)
-
-	#test right motor
-	right_pwm = right_rotate(True,right_pwm)
-	sleep(1)
-	right_stop(right_pwm)
-
-        GPIO.output(led,GPIO.LOW)
-
-	right_rotate(False,right_pwm)
-	sleep(1)
-	right_stop(right_pwm)
-
-        GPIO.output(led,GPIO.HIGH)
-
-	#test both motors
-	left_rotate(False,left_pwm)
-	right_rotate(False,right_pwm)
-	sleep(2)
-	left_stop(left_pwm)
-	right_stop(right_pwm)
-
-        GPIO.output(led,GPIO.LOW)
-
-	left_rotate(True,left_pwm)
-	right_rotate(True,right_pwm)
-	sleep(2)
-	left_stop(left_pwm)
-	right_stop(right_pwm)
-
-        GPIO.output(led,GPIO.LOW)
-
-	sleep(5)
-
-left_pwm.stop()
-right_pwm.stop()
-
-GPIO.output(led,GPIO.LOW)
-
-GPIO.cleanup()
