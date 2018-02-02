@@ -9,7 +9,7 @@ lmotor = PWMMotor(pins['EN'], pins['IN1'], pins['IN2'])
 pins = Cfg().get('right_motor')
 rmotor = PWMMotor(pins['EN'], pins['IN1'], pins['IN2'])
 
-power = 1
+power = 25
 
 led = Cfg().get('ctrl_led')
 GPIO.setup(led,GPIO.OUT)
