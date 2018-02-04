@@ -7,5 +7,6 @@
 	"gyro_filter":{"K1":0.98,"K2":0.02},
 	"pid":[1.0,0.0,0.0],
 	"frequency":10,
+	"min_power":95,
 	"max_angle":45
 }
