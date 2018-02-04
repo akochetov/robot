@@ -5,13 +5,13 @@ from datetime import  datetime
 class PWMMotor:
 	_pwm = None
 
-	_pwm_freq = 500
+	_pwm_freq = 0
 
 	_enable_pin = 0
 	_in1_pin = 0
 	_in2_pin = 0
 
-	def __init__(self,enable_pin,in1_pin,in2_pin,pwm_frequency=100):
+	def __init__(self,enable_pin,in1_pin,in2_pin,pwm_frequency=1000):
 		GPIO.setmode(GPIO.BCM)
 
 		self._enable_pin = enable_pin
@@ -29,13 +29,13 @@ class PWMMotor:
 		self._pwm = GPIO.PWM(self._enable_pin,self._pwm_freq)
                 self._pwm.start(0)
 
-	def rotate(self,clockwise,power=100):
+	def rotate(self,clockwise=True,power=100):
 		assert self._pwm is not None, "PWM was not yet setup. Call setup() first"
-		print(str(datetime.now())+' Rotate motor: EN:'+str(self._enable_pin)+',IN1:'+str(self._in1_pin)+',IN2:'+str(self._in2_pin))
+		#print(str(datetime.now())+' Rotate motor: EN:'+str(self._enable_pin)+',IN1:'+str(self._in1_pin)+',IN2:'+str(self._in2_pin)+',power:'+str(power))
 
 	        if clockwise:
-        	        GPIO.output(self._in1_pin,GPIO.HIGH)
                 	GPIO.output(self._in2_pin,GPIO.LOW)
+                        GPIO.output(self._in1_pin,GPIO.HIGH)
 	        else:
         	        GPIO.output(self._in1_pin,GPIO.LOW)
                 	GPIO.output(self._in2_pin,GPIO.HIGH)
@@ -44,7 +44,7 @@ class PWMMotor:
 
 	def stop(self):
 		if self._pwm is not None:
-			print(str(datetime.now())+' Stop motor: EN:'+str(self._enable_pin)+',IN1:'+str(self._in1_pin)+',IN2:'+str(self._in2_pin))
+			#print(str(datetime.now())+' Stop motor: EN:'+str(self._enable_pin)+',IN1:'+str(self._in1_pin)+',IN2:'+str(self._in2_pin))
 			GPIO.output(self._in1_pin, GPIO.LOW)
 			GPIO.output(self._in2_pin, GPIO.LOW)
 			self._pwm.ChangeDutyCycle(0)
