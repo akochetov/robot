@@ -9,7 +9,8 @@ from motor import PWMMotor
 delta   = 0 #difference between current angle and target angle
 error   = 0 #integral (sum) of deltas for last balancing cycles
 prev_time	= 0 #time of previous balance cycle, used to calculate gyro angle offsets basing on gyro angle speeds
-sleep_time = 1/Cfg().get("frequency")
+prev_angle	= 0 #angle captured during previous balancing cycle
+sleep_time = 1.0/Cfg().get("frequency")
 
 
 #reading configuration parameters once at the beginning
@@ -20,10 +21,17 @@ max_angle = Cfg().get("max_angle")		#max angle. when current angle gets above ma
 target = Cfg().get("gyro")["target"]		#angle to keep
 calibration = Cfg().get("gyro")["calibration"]	#gyro calibration (offset) for selected axis 
 min_power = Cfg().get("min_power")		#minimum power to supply to motors. from 0 to 100.
+max_power = Cfg().get("max_power")
 led = Cfg().get("ctrl_led")
+lmotor_balance = Cfg().get("motors_balance")["left"]
+rmotor_balance = Cfg().get("motors_balance")["right"]
 
 K1 = Cfg().get("gyro_filter")["K1"]		#complimentary filter coeficient. gyro coeficient
 K2 = Cfg().get("gyro_filter")["K2"]		#complimentary filter coeficient. accelerometer coefficent
+
+P = Cfg().get("pid")[0]
+I = Cfg().get("pid")[1]
+D = Cfg().get("pid")[2]
 
 #initializing motors
 lmotor = PWMMotor(*Cfg().get("lmotor").values())
@@ -55,6 +63,7 @@ signal(SIGTERM, exitLoop)
 
 #get initial angle from accelerometer
 angle = initAngle()
+prev_angle = angle
 prev_time = time()
 print "initial angle:",angle
 
@@ -65,10 +74,9 @@ GPIO.output(led,GPIO.HIGH)
 
 while not exit_loop:
 	#fetch data from gyro and accel
-	mpu.updateData()
-
         time_diff = time()-prev_time
         prev_time = time()
+	mpu.updateData()
 	offset = 0
 
 	#recalulate gyro angle taking gyro data into account
@@ -85,23 +93,41 @@ while not exit_loop:
 
     	#print "gyro angle:",str(angle)
 	#print "accel angle:",str(mpu.getXrotation())
- 	if math.fabs(angle) > max_angle:# or math.fabs(angle) < 1:
-        	print "Angle exceeds maximum angle."
+ 	if math.fabs(angle-target) > max_angle:
+        	print "Angle exceeds maximum angle"
         	lmotor.stop()
         	rmotor.stop()
         	continue
 
 	#calulcate power to supplty to motors  
     	delta = angle - target
-    	power=min_power+math.fabs(delta/max_angle*(100-min_power))#-math.fabs(sume*ki)-(balance-delta/45*100*kd)
+	delta_sign = 1 if delta > 0 else -1
+	future_angle = 2*angle-prev_angle
+
+    	power = min_power+P*math.fabs(delta/max_angle*(100-min_power))-\
+		I*math.fabs(delta)-\
+		D*delta_sign*(target-future_angle)
+
+	if power > max_power:
+		power = max_power
+	if power < 0:
+		power = min_power
+
+	print "d = {}	power = {}	P = {}	I = {}	t = {}	a = {}	prev_a = {}	future_a = {}	D = {}".format(delta,power,P*math.fabs(delta/max_angle*(100-min_power)),I*math.fabs(delta),target,angle,prev_angle,future_angle,D*delta_sign*(target-future_angle))
+
 
 	#identify rotation direction
     	clockwise = delta > 0
-    	lmotor.rotate(clockwise,power)
-    	rmotor.rotate(clockwise,power)
+    	lmotor.rotate(clockwise,power*lmotor_balance)
+    	rmotor.rotate(clockwise,power*rmotor_balance)
 
 	sleep(sleep_time)#sleep until next balancing cycle
 
+	#remember angle for piD calculations during next balancing cycle
+	prev_angle = angle
+
 print "Received terminalion signal. Exiting."
+lmotor.stop()
+rmotor.stop()
 GPIO.output(led,GPIO.LOW)
 

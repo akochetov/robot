@@ -13,17 +13,23 @@ p=None
 #---------------------------------------
 #global variables
 press_time = 0
+turning_off = False
 
 #---------------------------------------
 #button press handlers
 
 def when_held():
 	global led
+	global turning_off
+
+	#set turn off flag to True so button release doesnt trigger app start
+	turning_off = True
+
 	print('Button held. Shutting down...')
 
 	led.blink()
 
-	when_pressed()
+	when_released()
 	check_call('sudo poweroff ',shell=True)
 	sleep(5)
 
@@ -36,7 +42,11 @@ def when_dbl():
                 p=None
                 print "Process terminated"
 
-def when_pressed():
+def when_released():
+	global turning_off
+	if turning_off:
+		return
+
 	#inform python that we will use global press_time variable
 	global press_time
 	global p
@@ -63,5 +73,5 @@ sleep(3)
 led.off()
 
 shut_btn.when_held=when_held
-shut_btn.when_pressed=when_pressed
+shut_btn.when_released=when_released
 pause()
