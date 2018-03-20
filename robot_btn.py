@@ -30,8 +30,8 @@ def when_held():
 	led.blink()
 
 	when_released()
+	sleep(3)
 	check_call('sudo poweroff ',shell=True)
-	sleep(5)
 
 def when_dbl():
 	global p

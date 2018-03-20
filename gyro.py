@@ -45,10 +45,6 @@ class Bus():
   		return math.degrees(radians)
 
 class MPU6050(Bus):
-	_accel_xout = 0
-	_accel_yout = 0
-	_accel_zout = 0
-
 	_accel_xout_scaled = 0
 	_accel_yout_scaled = 0
 	_accel_zout_scaled = 0
@@ -57,23 +53,24 @@ class MPU6050(Bus):
 	_gyro_yout = 0
 	_gyro_zout = 0
 
-	def updateData(self):
+	def get_all_data(self):
 	        self._gyro_xout = self.read_word_2c(0x43)
 		self._gyro_yout = self.read_word_2c(0x45)
 		self._gyro_zout = self.read_word_2c(0x47)
 
-        	self._accel_xout = self.read_word_2c(0x3b)
-	        self._accel_yout = self.read_word_2c(0x3d)
-        	self._accel_zout = self.read_word_2c(0x3f)
+	        self._accel_xout_scaled = self.read_word_2c(0x3b) / 16384.0
+        	self._accel_yout_scaled = self.read_word_2c(0x3d) / 16384.0
+	        self._accel_zout_scaled = self.read_word_2c(0x3f) / 16384.0
 
-	        self._accel_xout_scaled = self._accel_xout / 16384.0
-        	self._accel_yout_scaled = self._accel_yout / 16384.0
-	        self._accel_zout_scaled = self._accel_zout / 16384.0
+                gyro = {'x':self.getXoutSc(),'y':self.getYoutSc(),'z':self.getZoutSc()}
+                accel = {'x':self.getXrotation(),'y':self.getYrotation()}
+
+                return {'accel_rotation':accel,'gyro':gyro}
 
 	def getXrotation(self):
 		return self.get_x_rotation(self._accel_xout_scaled, self._accel_yout_scaled, self._accel_zout_scaled)
 
-	def getYrotation(self):              
+	def getYrotation(self):
                 return self.get_y_rotation(self._accel_xout_scaled, self._accel_yout_scaled, self._accel_zout_scaled)
 
 	def getXout(self):
